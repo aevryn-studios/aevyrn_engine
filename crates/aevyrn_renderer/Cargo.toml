@@ -1,0 +1,17 @@
+[package]
+name = "aevyrn_renderer"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+log.workspace = true
+wgpu.workspace = true
+winit = { workspace = true, features = ["rwh_05"] }
+thiserror.workspace = true
+
+[lib]
+name = "aevyrn_renderer"
+path = "src/lib.rs"
