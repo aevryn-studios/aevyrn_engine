@@ -1,0 +1,19 @@
+[package]
+name = "aevyrn_runtime"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+log.workspace = true
+aevyrn_core = { path = "../aevyrn_core" }
+aevyrn_window = { path = "../aevyrn_window" }
+aevyrn_renderer = { path = "../aevyrn_renderer" }
+thiserror.workspace = true
+winit.workspace = true
+
+[lib]
+name = "aevyrn_runtime"
+path = "src/lib.rs"
