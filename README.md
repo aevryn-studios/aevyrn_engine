@@ -14,7 +14,9 @@ The long-term goal is for **Aevyrn AI**, the built-in local AI system, to unders
 ## Architecture
 
 The engine is organized into major subsystems:
+## Warning
 
+The engine is still under mass development, so it is not usable at the moment. Additions every week!
 ```
 Aevyrn Engine
 ├── Core
