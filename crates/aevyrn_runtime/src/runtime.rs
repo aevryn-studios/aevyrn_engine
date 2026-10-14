@@ -31,8 +31,9 @@ impl Runtime {
 
     /// Initialize the runtime.
     ///
-    /// This sets up the engine, window, and renderer.
-    pub async fn initialize(&mut self, window_config: WindowConfig) -> Result<()> {
+    /// This sets up the engine and renderer. Window creation is performed by the caller
+    /// to avoid holding a Winit EventLoop across await points.
+    pub async fn initialize(&mut self) -> Result<()> {
         info!("Initializing Aevyrn Runtime");
 
         // Initialize the engine
@@ -40,32 +41,45 @@ impl Runtime {
             .initialize()
             .map_err(|e| Error::init_failed(format!("Engine initialization failed: {}", e)))?;
 
-        // Create the window
-        let (window, event_loop) = Window::new(window_config)
-            .map_err(|e| Error::init_failed(format!("Window creation failed: {}", e)))?;
-        self.window = Some(window);
-
-        // Initialize the renderer
-        let mut render_context = RenderContext::new()
+        // Initialize the renderer (async)
+        let render_context = RenderContext::new()
             .await
             .map_err(|e| Error::init_failed(format!("Renderer initialization failed: {}", e)))?;
 
-        // Create render surface
-        if let Some(win) = &self.window {
-            let (width, height) = win.size();
-            render_context.create_surface(win.inner().unwrap(), width, height)
-                .map_err(|e| Error::init_failed(format!("Surface creation failed: {}", e)))?;
-        }
-
         self.render_context = Some(render_context);
 
-        info!("Runtime initialized successfully");
+        info!("Runtime initialized successfully (renderer ready)");
+        Ok(())
+    }
+
+    /// Attach a created window to the runtime and create the GPU surface.
+    ///
+    /// The caller is expected to create the window (and its EventLoop) after calling
+    /// initialize(), to avoid holding the EventLoop across await points.
+    pub fn attach_window(&mut self, window: Window) -> Result<()> {
+        info!("Attaching window to runtime");
+
+        // Create render surface if renderer was initialized
+        if let Some(rc) = self.render_context.as_mut() {
+            if let Some(win_ref) = window.inner() {
+                let (width, height) = window.size();
+                rc.create_surface(win_ref, width, height)
+                    .map_err(|e| Error::init_failed(format!("Surface creation failed: {}", e)))?;
+            }
+        } else {
+            return Err(Error::runtime_error(
+                "Renderer not initialized before attaching window",
+            ));
+        }
+
+        self.window = Some(window);
         Ok(())
     }
 
     /// Run the main event loop.
     ///
-    /// This is the main blocking call that starts the runtime.
+    /// This is the main blocking call that starts the runtime. The caller must provide the
+    /// EventLoop used to create the window.
     pub fn run(mut self, event_loop: winit::event_loop::EventLoop<()>) -> Result<()> {
         info!("Starting Aevyrn Runtime event loop");
 
@@ -98,6 +112,7 @@ impl Runtime {
                             debug!("Window resized to {}x{}", width, height);
                             if let Some(surface) = self.render_context.as_mut().and_then(|rc| rc.surface_mut()) {
                                 // Note: Full resize handling with device reconfiguration will be added later
+                                surface.resize(surface.device().device(), width, height);
                             }
                         }
                         _ => {}
