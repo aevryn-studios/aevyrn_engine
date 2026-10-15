@@ -108,8 +108,8 @@ impl Window {
             config.title, config.width, config.height
         );
 
-        let event_loop = EventLoop::new()
-            .map_err(|e| Error::init_failed(format!("Failed to create event loop: {}", e)))?;
+        // EventLoop::new() is infallible; do not treat it as a fallible operation.
+        let event_loop = EventLoop::new();
 
         let inner = Some(
             WindowBuilder::new()
