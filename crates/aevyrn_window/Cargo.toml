@@ -1,0 +1,17 @@
+[package]
+name = "aevyrn_window"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+log.workspace = true
+serde.workspace = true
+thiserror.workspace = true
+winit.workspace = true
+
+[lib]
+name = "aevyrn_window"
+path = "src/lib.rs"
