@@ -15,9 +15,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .format_timestamp_millis()
         .init();
 
-    info!("═══════════════════════════════════════════════════════════════");
+    info!("═════════════════════════════════════════════════════════════");
     info!("           Aevyrn Engine v{}", env!("CARGO_PKG_VERSION"));
-    info!("═══════════════════════════════════════════════════════════════");
+    info!("════════════════════════════════════════════════════════════=");
     info!("Starting Aevyrn Engine Foundation");
     info!("");
 
@@ -31,21 +31,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Create and initialize runtime
     let mut runtime = Runtime::new(engine_config);
-    runtime.initialize(window_config).await?;
+    // Initialize runtime (renderer and other async subsystems)
+    runtime.initialize().await?;
 
     info!("Engine initialized. Opening main loop...");
     info!("");
 
-    // Run the main loop
-    // Note: In Rust, the event loop can only be run once per process
-    // This will block until the window is closed
-    let (window, event_loop) = aevyrn_window::Window::new(WindowConfig::default())?;
+    // Create the window and event loop after async initialization to avoid holding
+    // a Winit EventLoop across await points.
+    let (window, event_loop) = aevyrn_window::Window::new(window_config)?;
+
+    // Attach the created window to the runtime (creates GPU surface, etc.)
+    runtime.attach_window(window)?;
+
+    // Run the main loop (this will block until the window is closed)
     runtime.run(event_loop)?;
 
     info!("");
-    info!("═══════════════════════════════════════════════════════════════");
+    info!("════════════════════════════════════════════════════════════=");
     info!("                    Aevyrn Engine Shutdown");
-    info!("═══════════════════════════════════════════════════════════════");
+    info!("════════════════════════════════════════════════════════════=");
 
     Ok(())
 }
