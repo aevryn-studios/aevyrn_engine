@@ -9,6 +9,7 @@ repository.workspace = true
 [dependencies]
 log.workspace = true
 env_logger.workspace = true
+tokio.workspace = true
 aevyrn_core = { path = "../aevyrn_core" }
 aevyrn_window = { path = "../aevyrn_window" }
 aevyrn_runtime = { path = "../aevyrn_runtime" }
